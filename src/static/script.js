@@ -53,23 +53,34 @@ share_button.addEventListener('click', () => {
 });
 
 async function startShare() {
-    local_video = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
-    video_element.srcObject = local_video;
-    local_video.getTracks().forEach(track => pc.addTrack(track, local_video));
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    socketio.emit('message', { offer: offer, room: room });
+    try {
+        local_video = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
+        video_element.srcObject = local_video;
+        local_video.getTracks().forEach(track => pc.addTrack(track, local_video));
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socketio.emit('message', { offer: offer, room: room });
+    } catch(error){
+        console.error("Error sharing screen: " + error);
+    }
 }
 
 async function handleOffer(offer) {
+    if (pc.signalingState !== 'stable') {
+        console.error('Connection not in stable state when setting remote offer');
+        return;
+    }
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    socketio.emit('message', { answer: answer, room: room });
+    socket.emit('message', { answer: answer, room: room });
 }
 
 async function handleAnswer(answer) {
-    console.log(answer);
+    if (pc.signalingState !== 'have-local-offer') {
+        console.error('Connection not in have-local-offer state when setting remote answer');
+        return;
+    }
     await pc.setRemoteDescription(new RTCSessionDescription(answer));
 }
 
