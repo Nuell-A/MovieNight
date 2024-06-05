@@ -1,38 +1,47 @@
 from flask import render_template
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room
 from . import app, socketio
+
+# Attributes
+rooms = {}
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
-
-content = {"name": "Alca"}
-@socketio.on('connect')
-def handle_connect(auth):
-    print(f"User connected.")
-
 @socketio.on('join')
 def handle_join(data):
-    room = data["room"]
-    join_room(room)
-    emit("join", room=room)
-    print(f"User joined: {data["room"]}")
+    room = data['room']
+    userId = data['userId']
+    socket_type = data['type']
+    # Checks for createing or joining a room
+    if (socket_type == "create"):
+        if (room not in rooms):
+            rooms[room] = [userId,]
+            join_room(room)
+            print("Created room...")
+            emit('join', {'type': 'create', 'userId': userId, 'room': room}, room=room)
+        else:
+            print("Already created.")
+            return
+    elif (socket_type == "join"):
+        if (room not in rooms):
+            print("Room does not exist")
+        else:
+            rooms[room].append(userId)
+            join_room(room)
+            print("Joined room...")
+            emit('join', {'type': 'join', 'userId': userId, 'room': room}, room=room)
+    print(rooms)
+    
 
 @socketio.on('message')
 def handle_message(data):
+    print(data)
     room = data['room']
-    emit('message', data, room=room)
+    userId = data['userId']
+    print(f"Message received: {data}")  # Debug output
+    emit('message', data, room=room, include_self=False)
 
-@socketio.on('disconnect')
-def handle_disconnect():
-    print("User disconnected.")
-
-'''@socketio.on("response")
-def message(data):
-    print(f"From JS: {str(data)}")'''
-
-@socketio.on("sharebt_clicked")
-def handle_clicked(data):
-    print(f"Button clicked to share screen: {str(data)}")
+if __name__ == '__main__':
+    socketio.run(app, debug=True)

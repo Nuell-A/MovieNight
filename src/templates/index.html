@@ -2,8 +2,19 @@
 
 {% block content %}
     <div class="body">
-        <video id="localVideo" width="1280" controls autoplay muted></video>
-        <video id="remoteVideo" autoplay></video>
-        <button id="shareScreen">Share Screen</button>
+        <div class="video-player">
+            <video id="localShare" width="1280" controls autoplay muted></video>
+            <video id="remoteShare" autoplay></video>
+            <button id="localShareSubmit">Get Display Media</button>
+            <button id="shareSubmit">Start Screen Share</button>
+            <button id="stopSubmit">Stop Screen Share</button>
+        </div>
+        <div class="room-container">
+            <label for="roomText">Room Name:</label>
+            <input type="text" id="roomText">
+            <button id="createRoomSubmit" >Create Room</button>
+            <button id="joinRoomSubmit">Join Room</button>
+        </div>
+
     </div>
 {% endblock %}

@@ -1,93 +1,172 @@
-const socketio = io(); // Using the same host/serve so no params needed. 
-const room = "screen-share";
 // HTML Attributes
-var video_element = document.getElementById("localVideo");
-var share_button = document.getElementById("shareScreen");
-var remote_video_element = document.getElementById("remoteVideo")
-// Attributes 
-var local_video;
+let room_text = document.getElementById('roomText') // Input
+let room_join_bt = document.getElementById('joinRoomSubmit') // BT
+let room_create_bt = document.getElementById('createRoomSubmit') // BT
 
+let local_share = document.getElementById('localShare') // Video
+let local_share_bt = document.getElementById('localShareSubmit')
+let remote_share = document.getElementById('remoteShare') // Video
 
+let share_bt = document.getElementById('shareSubmit') // BT
+let stop_bt = document.getElementById('stopSubmit') // BT
 
-
-// SocketIO Test
-
-/*socketio.on("message", (data => {
-    console.log(data.name)
-    socketio.emit("response", "We received " + data.name)
-}));*/
-console.log("SocketIO init...");
-
-socketio.on('connect', () => {
-    socketio.emit('join', { room: room });
-});
-
-socketio.on('message', async (data) => {
-    if (data.offer) {
-        await handleOffer(data.offer);
-    } else if (data.answer) {
-        await handleAnswer(data.answer);
-    } else if (data.candidate) {
-        await handleCandidate(data.candidate);
-    }
-});
-
-var pc = new RTCPeerConnection({
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-});
-
-pc.onicecandidate = (event) => {
-    if (event.candidate) {
-        socketio.emit('message', { candidate: event.candidate, room: room });
-    }
+// Attributes
+socketio = io()
+let peer_conn, room, local_stream, remote_stream
+let userId = "userId" + Math.random().toString(6).slice(2, 8)
+const servers = {
+    iceServers: [
+        {
+            urls:[
+                'stun:stun.l.google.com:19302',
+                'stun:stun1.l.google.com:19302'
+              ]
+        }
+    ]
 };
 
-pc.ontrack = (event) => {
-    remote_video_element.srcObject = event.streams[0];
-};
 
-//WebRTC Test
-share_button.addEventListener('click', () => {
-    socketio.emit("sharebt_clicked", "Sharing starting");
-    startShare();
-});
+let init = async () => {
+    // Initial connection to signaling server. 
+    socketio.on('connect', async () => {
+        console.log("User", userId, "connected to signaling server.")
+    })
 
-async function startShare() {
-    try {
-        local_video = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
-        video_element.srcObject = local_video;
-        local_video.getTracks().forEach(track => pc.addTrack(track, local_video));
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socketio.emit('message', { offer: offer, room: room });
-    } catch(error){
-        console.error("Error sharing screen: " + error);
-    }
+    socketio.on('join', async (data) => {
+        // Displays console if user joins or creates a room.
+        if (data.type == 'join') {
+            console.log("User", data.userId, "joined room", data.room)
+        } else if (data.type == 'create') {
+            console.log("User", data.userId, "created and joined room", data.room)
+        }
+    })
+
+    socketio.on('message', async (data) => {
+        if (data.offer) {
+            await handleOffer(data.offer)
+        } else if (data.answer) {
+            await handleAnswer(data.answer)
+        } else if (data.candida) {
+            await handleCandidate(data.candidate)
+        }
+    })
+
+    room_join_bt.addEventListener('click', async () => {
+        // Joins room if it exists
+        room = room_text.value
+        socketio.emit('join', {'type': 'join', userId: userId, room:room})
+    })
+
+    room_create_bt.addEventListener('click', async () => {
+        // Sends room info to signaling server to create room if not already taken.
+        room = room_text.value
+        socketio.emit('join', {'type': 'create', userId: userId, room:room})
+    })
+
+    local_share_bt.addEventListener('click', async () => {
+        // Gets user display screen media.
+        fetchUserMedia()
+    })
+
+    share_bt.addEventListener('click', async () => {
+        // Start sharing to peer 
+        console.log("Starting screen share...")
+        initPeerConn()
+
+        // Creates offer.
+        const offer = await peer_conn.createOffer()
+        await peer_conn.setLocalDescription(offer)
+        console.log("SENT OFFER")
+        socketio.emit('message', {offer: offer, room: room, userId: userId})
+    })
+    
+    stop_bt.addEventListener('click', async () => {
+        // Stop sharing to peer
+    })
 }
 
-async function handleOffer(offer) {
-    if (pc.signalingState !== 'stable') {
-        console.error('Connection not in stable state when setting remote offer');
-        return;
-    }
-    await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socket.emit('message', { answer: answer, room: room });
+let fetchUserMedia = () => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            local_stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true})
+            local_share.srcObject = local_stream
+            console.log("Recording screen...")
+            resolve()
+        } catch(err) {
+            console.log(err)
+            reject()
+        }
+    })
 }
 
-async function handleAnswer(answer) {
-    if (pc.signalingState !== 'have-local-offer') {
-        console.error('Connection not in have-local-offer state when setting remote answer');
-        return;
+let initPeerConn = async () => {
+    /**
+     * Creates new PC, gets ICE Candidates 
+     * Creates MediaStream object to hold incoming tracks and sets remoteShare element.
+     */
+    peer_conn = new RTCPeerConnection(servers) // New PC
+    console.log("RTCPeerconnection instantiated.")
+    remote_stream = new MediaStream() // Object to hold incoming media streams
+    remote_share.srcObject = remote_stream // Sets to remoteShare in HTML
+
+    // Grabs local media tracks to send to peer. 
+    if (local_stream) {
+        local_stream.getTracks().forEach(track => {
+            peer_conn.addTrack(track, local_stream)
+        })
     }
-    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    
+
+    peer_conn.addEventListener("signalingstatechange", (event) => {
+        console.log(event);
+        console.log(peer_conn.signalingState)
+    });
+
+    peer_conn.addEventListener("icecandidate", event => { // Gets ICE Candidates
+        console.log('........Ice candidate found!......')
+        console.log(event)
+        if (event.candidate) {
+            socketio.emit('message', { iceCandidate: event.candidate, room: room, userId: userId });
+        }
+    });
+
+    peer_conn.addEventListener("track", event => { // Grabs incoming tracks and inserts them in MediaStream object.
+        console.log('........Track received!......')
+        console.log(event)
+        event.streams[0].getTracks().forEach(track => {
+            remote_stream.addTrack(track, remote_stream)
+        })
+    })
 }
 
-async function handleCandidate(candidate) {
-    try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (error) {
-        console.error('Error adding received ICE candidate:', error);
-    }
+let handleOffer = async (offer) => {
+    /* 
+    Creates new peer_conn.
+    Grabs ICE Candidates.
+    Adds tracks.
+    Sets remote description and emits.
+    */
+
+    if (!peer_conn) {
+        initPeerConn();
+        console.log("Create Peer Connection to handle offer.")
+     }
+
+    await peer_conn.setRemoteDescription(offer)
+    const answer = await peer_conn.createAnswer()
+    await peer_conn.setLocalDescription(answer)
+    console.log("RECEIVED OFFER:", offer)
+    socketio.emit('message', {answer: answer, room: room, userId: userId})
 }
+
+let handleAnswer = async (answer) => {
+    await peer_conn.setRemoteDescription(answer)
+    console.log("RECEIVED ANSWER:", answer)
+}
+
+let handleCandidate = async (candidate) => {
+    await peer_conn.addIceCandidate(candidate)
+    console.log("RECEIVED CANDIDATE:", candidate)
+}
+
+init()
