@@ -85,18 +85,10 @@ let init = async () => {
     })
 }
 
-let fetchUserMedia = () => {
-    return new Promise(async(resolve, reject) => {
-        try {
-            local_stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true})
-            local_share.srcObject = local_stream
-            console.log("Recording screen...")
-            resolve()
-        } catch(err) {
-            console.log(err)
-            reject()
-        }
-    })
+let fetchUserMedia = async () => {
+    local_stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true})
+    local_share.srcObject = local_stream
+    console.log("Recording screen...")
 }
 
 let initPeerConn = async () => {
