@@ -46,7 +46,7 @@ let init = async () => {
             await handleOffer(data.offer)
         } else if (data.answer) {
             await handleAnswer(data.answer)
-        } else if (data.candida) {
+        } else if (data.candidate) {
             await handleCandidate(data.candidate)
         }
     })
@@ -126,7 +126,8 @@ let initPeerConn = async () => {
         console.log('........Ice candidate found!......')
         console.log(event)
         if (event.candidate) {
-            socketio.emit('message', { iceCandidate: event.candidate, room: room, userId: userId });
+            console.log("Sending ICE Candidate", event.candidate)
+            socketio.emit('message', { candidate: event.candidate, room: room, userId: userId });
         }
     });
 
@@ -135,8 +136,25 @@ let initPeerConn = async () => {
         console.log(event)
         event.streams[0].getTracks().forEach(track => {
             remote_stream.addTrack(track, remote_stream)
+            console.log("Track Added!!")
         })
     })
+
+    // Monitor connection state
+    peer_conn.onconnectionstatechange = () => {
+        console.log(`Connection state change: ${peer_conn.connectionState}`);
+        if (peer_conn.connectionState === 'connected') {
+            console.log('Peer connection established successfully.');
+        }
+    };
+
+    // Monitor ICE connection state
+    peer_conn.oniceconnectionstatechange = () => {
+        console.log(`ICE connection state change: ${peer_conn.iceConnectionState}`);
+        if (peer_conn.iceConnectionState === 'connected' || peer_conn.iceConnectionState === 'completed') {
+            console.log('ICE connection established successfully.');
+        }
+    };
 }
 
 let handleOffer = async (offer) => {
