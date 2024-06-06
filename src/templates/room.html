@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="body">
+        <hr>
+        <div class="container mt-lg">
+                <div class="video-players center-content">
+                    <video id="localShare" width="1280" controls autoplay muted></video>
+                    <video id="remoteShare" width="1280" controls autoplay></video>
+                </div>
+                <div class="settings mr-md">
+                    <div class="room-settings center-content">
+                        <label for="roomText">Room: room_name</label>
+                        <br>
+                        <button class="normal-button mt-xsm mr-sm" id="createRoomSubmit">Leave</button>
+                    </div>
+                    <div class="share-settings center-content">
+                        <p class="settings-label">Screen Sharing Settings:</p>
+                        <button class="big-button" id="localShareSubmit">Capture Screen</button>
+                        <br>
+                        <button class="big-button mt-sm mr-sm" id="shareSubmit">Start Sharing</button>
+                        <button class="big-button mt-sm" id="stopSubmit">Stop Sharing</button>
+                    </div>
+                </div> 
+        </div>
+    </div>
+{% endblock %}

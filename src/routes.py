@@ -9,6 +9,10 @@ rooms = {}
 def index():
     return render_template('index.html')
 
+@app.route('/room')
+def room():
+    return render_template('room.html')
+
 @socketio.on('join')
 def handle_join(data):
     room = data['room']

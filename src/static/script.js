@@ -66,6 +66,9 @@ let init = async () => {
     local_share_bt.addEventListener('click', async () => {
         // Gets user display screen media.
         fetchUserMedia()
+        // Makes local video visible and hides remote video.
+        local_share.style.display = 'block'
+        remote_share.style.display = 'none'
     })
 
     share_bt.addEventListener('click', async () => {
@@ -167,6 +170,10 @@ let handleOffer = async (offer) => {
     await peer_conn.setLocalDescription(answer)
     console.log("RECEIVED OFFER:", offer)
     socketio.emit('message', {answer: answer, room: room, userId: userId})
+
+    // Turns on remote video and keeps local video (not used) hidden.
+    local_share.style.display = 'none'
+    remote_share.style.display = 'block'
 }
 
 let handleAnswer = async (answer) => {
