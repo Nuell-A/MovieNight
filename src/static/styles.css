@@ -1,0 +1,101 @@
+:root {
+    --color-background: #1e1e1e;
+    --color-primary: #363636;
+    --color-background-secondary: #2f2b3a;
+    --color-nav-bg: #2f2b3a;
+    --color-text-secondary: #908d96;
+    --color-text-primary: whitesmoke;
+}
+
+.mt-xl {
+    margin-top: 5rem;
+}
+
+.mt-lg {
+    margin-top: 3rem;
+}
+
+.mt-md {
+    margin-top: 2rem;
+}
+
+.mt-sm {
+    margin-top: 1rem;
+}
+
+.mt-xsm {
+    margin-top: 0.60rem;
+}
+
+.mb-sm {
+    margin-bottom: 1rem;
+}
+
+.ml-md {
+    margin-left: 1.5rem;
+}
+
+.ml-sm {
+    margin-left: 0.75rem;
+}
+
+.mr-lg {
+    margin-right: 3rem;
+}
+
+.mr-md {
+    margin-right: 1.5rem;
+}
+
+.mr-sm {
+    margin-right: 0.75rem;
+}
+
+.pl-md {
+    padding-left: 12px;
+}
+
+.p-md {
+    padding: 12px;
+}
+
+a {
+    text-decoration: None;
+    color: var(--color-text-primary);
+}
+
+body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+}
+
+video {
+    padding: 2rem;
+    display: none;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.center-content {
+    text-align: center;
+}
+
+.normal-button {
+    background-color: var(--color-primary);
+    color: var(--color-text-primary);
+    width: 3.5rem;
+    height: 2rem;
+    border-radius: 10px;
+}
+
+.big-button {
+    background-color: var(--color-primary);
+    color: var(--color-text-primary);
+    width: auto;
+    height: 2rem;
+    border-radius: 10px;
+}

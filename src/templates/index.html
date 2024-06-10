@@ -1,23 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="body">
-        <div class="room-container">
-            <label for="roomText">Room Name:</label>
-            <input type="text" id="roomText">
-            <button id="createRoomSubmit" >Create Room</button>
-            <button id="joinRoomSubmit">Join Room</button>
+<div class="body">
+    <hr>
+    <div class="container mt-sm">
+        <div class="video-players center-content mt-sm">
+            <video id="localShare" width="1280" controls autoplay muted></video>
+            <video id="remoteShare" width="1280" controls autoplay></video>
         </div>
-        <div class="video-player">
-            <hr>
-            <video id="localShare" controls autoplay muted></video>
-            <video id="remoteShare" controls autoplay></video>
-            <hr>
-            <button id="localShareSubmit">Get Display Media</button>
-            <button id="shareSubmit">Start Screen Share</button>
-            <button id="stopSubmit">Stop Screen Share</button>
+        <div>
+            <div class="room-settings center-content">
+                <label for="roomText">Create or Join a Room:</label>
+                <br>
+                <input type="text" id="roomText" placeholder="Room name">
+                <br>
+                <button class="normal-button mt-sm mr-sm" id="createRoomSubmit">Create</button>
+                <button class="normal-button mt-sm" id="joinRoomSubmit">Join</button>
+            </div>  
+            <div class="share-settings center-content">
+                <p class="settings-label">Screen Sharing Settings:</p>
+                <button class="big-button" id="localShareSubmit">Capture Screen</button>
+                <br>
+                <button class="big-button mt-sm mr-sm" id="shareSubmit">Start Sharing</button>
+                <button class="big-button mt-sm" id="stopSubmit">Stop Sharing</button>
+            </div>
         </div>
         
-
-    </div>
+    </div>              
+</div>
 {% endblock %}
