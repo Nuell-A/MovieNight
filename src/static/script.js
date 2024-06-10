@@ -86,6 +86,7 @@ let init = async () => {
 }
 
 let fetchUserMedia = async () => {
+    // Gets user media.
     local_stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true})
     local_share.srcObject = local_stream
     console.log("Recording screen...")
@@ -108,12 +109,13 @@ let initPeerConn = async () => {
         })
     }
     
-
+    // Monitors connection changes.
     peer_conn.addEventListener("signalingstatechange", (event) => {
         console.log(event);
         console.log(peer_conn.signalingState)
     });
 
+    // Finds and sends ICE Candidates to peer.
     peer_conn.addEventListener("icecandidate", event => { // Gets ICE Candidates
         console.log('........Ice candidate found!......')
         console.log(event)
@@ -123,6 +125,7 @@ let initPeerConn = async () => {
         }
     });
 
+    // Grabs incoming media.
     peer_conn.addEventListener("track", event => { // Grabs incoming tracks and inserts them in MediaStream object.
         console.log('........Track received!......')
         console.log(event)
