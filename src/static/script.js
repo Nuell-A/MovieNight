@@ -55,12 +55,14 @@ let init = async () => {
         // Joins room if it exists
         room = room_text.value
         socketio.emit('join', {'type': 'join', userId: userId, room:room})
+        sendRoomData(room, 'join')
     })
 
     room_create_bt.addEventListener('click', async () => {
         // Sends room info to signaling server to create room if not already taken.
         room = room_text.value
         socketio.emit('join', {'type': 'create', userId: userId, room:room})
+        sendRoomData(room, 'create')
     })
 
     local_share_bt.addEventListener('click', async () => {
@@ -86,6 +88,30 @@ let init = async () => {
     stop_bt.addEventListener('click', async () => {
         // Stop sharing to peer
     })
+}
+
+function sendRoomData(room, type) {
+    fetch('/room', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            type: type,
+            room: room
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.href = `/room?room=${data.room}`;
+        } else {
+            console.error('Error:', data);
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
 }
 
 let fetchUserMedia = async () => {
